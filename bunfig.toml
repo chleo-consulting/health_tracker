@@ -1,0 +1,3 @@
+# Force Bun as the runtime for Next.js
+[run]
+bun = true

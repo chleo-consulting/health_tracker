@@ -851,7 +851,7 @@ Ordre recommandé d'implémentation, conçu pour valider chaque couche avant de 
 ### Étape 1 — Initialisation du projet
 
 ```bash
-bun create next-app health-tracker --typescript --tailwind --app --no-src-dir
+bun create next-app health-tracker --typescript --tailwind --app
 cd health-tracker
 bun add drizzle-orm better-auth
 bun add -d drizzle-kit @types/bun
