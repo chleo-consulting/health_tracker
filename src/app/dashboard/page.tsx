@@ -1,62 +1,100 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { StatsCards } from "@/components/dashboard/StatsCards";
+import { WeightChart } from "@/components/dashboard/WeightChart";
+import { WeightTable } from "@/components/dashboard/WeightTable";
+import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
+import { EntryForm } from "@/components/entries/EntryForm";
+import { DeleteConfirmDialog } from "@/components/entries/DeleteConfirmDialog";
 import type { WeightEntry, StatsResponse, PaginationMeta } from "@/types/index";
-
-type Period = "3m" | "6m" | "1y" | "all";
-
-const periodLabels: Record<Period, string> = {
-  "3m": "3 mois",
-  "6m": "6 mois",
-  "1y": "1 an",
-  all: "Tout",
-};
-
-function getPeriodDates(period: Period): { dateFrom?: string; dateTo?: string } {
-  if (period === "all") return {};
-  const now = new Date();
-  const months = period === "3m" ? 3 : period === "6m" ? 6 : 12;
-  const from = new Date(now);
-  from.setMonth(from.getMonth() - months);
-  return { dateFrom: from.toISOString().slice(0, 10) };
-}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [period, setPeriod] = useState<Period>("3m");
+  const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<string | undefined>(undefined);
   const [entries, setEntries] = useState<WeightEntry[]>([]);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const { dateFrom, dateTo } = getPeriodDates(period);
-    const params = new URLSearchParams();
-    if (dateFrom) params.set("date_from", dateFrom);
-    if (dateTo) params.set("date_to", dateTo);
-    const qs = params.toString();
+  // Modal state
+  const [showEntryForm, setShowEntryForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<WeightEntry | null>(null);
+  const [deletingEntry, setDeletingEntry] = useState<WeightEntry | null>(null);
 
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      fetch(`/api/entries${qs ? `?${qs}` : ""}`).then((r) => r.json()),
-      fetch(`/api/entries/stats${qs ? `?${qs}` : ""}`).then((r) => r.json()),
-    ])
-      .then(([entriesData, statsData]: [{ data: WeightEntry[]; meta: PaginationMeta }, StatsResponse]) => {
-        setEntries(entriesData.data ?? []);
-        setStats(statsData);
-      })
-      .catch(() => setError("Erreur lors du chargement des données."))
-      .finally(() => setLoading(false));
-  }, [period]);
+    const statsParams = new URLSearchParams();
+    if (dateFrom) statsParams.set("from", dateFrom);
+    if (dateTo) statsParams.set("to", dateTo);
+    const statsQs = statsParams.toString();
+
+    // Entries: toujours toutes, ordre chronologique, pour le graphique
+    const entriesParams = new URLSearchParams({ sort: "asc", limit: "100" });
+    if (dateFrom) entriesParams.set("from", dateFrom);
+    if (dateTo) entriesParams.set("to", dateTo);
+    const entriesQs = entriesParams.toString();
+
+    try {
+      const [entriesRes, statsRes] = await Promise.all([
+        fetch(`/api/entries?${entriesQs}`),
+        fetch(`/api/entries/stats${statsQs ? `?${statsQs}` : ""}`),
+      ]);
+      const entriesData: { data: WeightEntry[]; meta: PaginationMeta } = await entriesRes.json();
+      const statsData: { data: StatsResponse } = await statsRes.json();
+      setEntries(entriesData.data ?? []);
+      setStats(statsData.data ?? null);
+    } catch {
+      setError("Erreur lors du chargement des données.");
+    } finally {
+      setLoading(false);
+    }
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleRangeChange = (from?: string, to?: string) => {
+    setDateFrom(from);
+    setDateTo(to);
+  };
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/login");
+  };
+
+  const openAdd = () => {
+    setEditingEntry(null);
+    setShowEntryForm(true);
+  };
+
+  const openEdit = (entry: WeightEntry) => {
+    setEditingEntry(entry);
+    setShowEntryForm(true);
+  };
+
+  const closeEntryForm = () => {
+    setShowEntryForm(false);
+    setEditingEntry(null);
+  };
+
+  const handleEntrySuccess = () => {
+    closeEntryForm();
+    fetchData();
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeletingEntry(null);
+    await fetchData();
   };
 
   return (
@@ -77,40 +115,69 @@ export default function DashboardPage() {
 
         {/* Section stats */}
         <section aria-label="Statistiques">
-          {/* TODO Step 8 : <StatsCards stats={stats} /> */}
-          {loading && <p className="text-sm text-gray-500">Chargement des statistiques…</p>}
+          {loading ? (
+            <p className="text-sm text-gray-500">Chargement des statistiques…</p>
+          ) : (
+            <StatsCards stats={stats} />
+          )}
         </section>
 
         {/* Section graphique */}
         <section aria-label="Graphique d'évolution">
-          <div className="mb-4 flex gap-2">
-            {(Object.keys(periodLabels) as Period[]).map((p) => (
-              <Button
-                key={p}
-                variant={period === p ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setPeriod(p)}
-              >
-                {periodLabels[p]}
-              </Button>
-            ))}
+          <div className="mb-4">
+            <DateRangeFilter onRangeChange={handleRangeChange} />
           </div>
-          {/* TODO Step 8 : <WeightChart entries={entries} /> */}
-          {loading && <p className="text-sm text-gray-500">Chargement du graphique…</p>}
+          {loading ? (
+            <p className="text-sm text-gray-500">Chargement du graphique…</p>
+          ) : (
+            <WeightChart
+              entries={entries}
+              onPointClick={(entry) => openEdit(entry)}
+            />
+          )}
         </section>
 
         {/* Section tableau */}
         <section aria-label="Liste des pesées">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800">Pesées</h2>
-            <Button size="sm" onClick={() => {/* TODO Step 8 */}}>
+            <Button size="sm" onClick={openAdd}>
               Ajouter une pesée
             </Button>
           </div>
-          {/* TODO Step 8 : <WeightTable entries={entries} /> */}
-          {loading && <p className="text-sm text-gray-500">Chargement des données…</p>}
+          {loading ? (
+            <p className="text-sm text-gray-500">Chargement des données…</p>
+          ) : (
+            <WeightTable
+              entries={entries}
+              onEdit={openEdit}
+              onDelete={(entry) => setDeletingEntry(entry)}
+            />
+          )}
         </section>
       </main>
+
+      {/* Modal ajout / édition */}
+      <Modal
+        isOpen={showEntryForm}
+        onClose={closeEntryForm}
+        title={editingEntry ? "Modifier la pesée" : "Ajouter une pesée"}
+      >
+        <EntryForm
+          entry={editingEntry ?? undefined}
+          onSuccess={handleEntrySuccess}
+          onCancel={closeEntryForm}
+        />
+      </Modal>
+
+      {/* Dialog suppression */}
+      {deletingEntry && (
+        <DeleteConfirmDialog
+          entry={deletingEntry}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeletingEntry(null)}
+        />
+      )}
     </div>
   );
 }
