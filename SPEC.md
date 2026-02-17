@@ -337,7 +337,7 @@ Toutes les routes API (sauf `/api/auth/**`) nécessitent une session valide. Le 
 ```json
 {
   "user": {
-    "id": 1,
+    "id": "cuid2_string",
     "email": "user@example.com",
     "created_at": "2026-02-17T10:00:00.000Z"
   }
@@ -577,13 +577,13 @@ Un script `scripts/seed.ts` est exécuté automatiquement si la base de données
 **Comportement du seed :**
 
 1. Créer un utilisateur de démonstration :
-   - Email : `demo@weighttracker.app`
+   - Email : `ch.decourcel@gmail.com`
    - Mot de passe : `Demo1234!` (haché avant insertion)
 
-2. Insérer les 101 pesées du fichier `data/seed/Poids-Grid_view.csv` associées à cet utilisateur.
+2. Insérer les 101 pesées du fichier `data/seed/weights_chcdc.csv` associées à cet utilisateur.
 
 **Règles de conversion du CSV :**
-- La colonne `Jour` au format `D/M/YYYY` est convertie en `YYYY-MM-DD`.
+- La colonne `Jour` est au format `YYYY-MM-DD`.
 - La colonne `Poids` est castée en `REAL`.
 - La colonne `Notes` est insérée telle quelle (NULL si vide).
 
@@ -766,7 +766,7 @@ health-tracker/
 ├── data/
 │   ├── health-tracker.db             # Fichier SQLite (généré)
 │   └── seed/
-│       └── Poids-Grid_view.csv       # Données initiales
+│       └── weights_chcdc.csv       # Données initiales
 ├── scripts/
 │   └── seed.ts                       # Script de seed exécutable
 ├── middleware.ts                     # Protection des routes
@@ -894,9 +894,8 @@ bunx drizzle-kit push
 ### Étape 4 — Seed de la base de données
 
 - Créer `src/lib/db/seed.ts` :
-  - Lire et parser `data/seed/Poids-Grid_view.csv` avec `Bun.file()`.
-  - Convertir les dates `D/M/YYYY` → `YYYY-MM-DD`.
-  - Créer l'utilisateur de démo (`demo@weighttracker.app` / `Demo1234!`).
+  - Lire et parser `data/seed/weights_chcdc.csv` avec `Bun.file()`.
+  - Créer l'utilisateur de démo (`ch.decourcel@gmail.com` / `Demo1234!`).
   - Insérer les 101 pesées en transaction.
 - Déclencher le seed automatiquement au boot si la table `users` est vide.
 - Vérifier via `bunx drizzle-kit studio` ou requête directe que les données sont correctement insérées.

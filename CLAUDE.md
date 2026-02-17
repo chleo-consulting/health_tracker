@@ -60,7 +60,7 @@ This is a Next.js 16.1 application using the App Router pattern with:
 - Tables managed by Better-auth: `user`, `session`, `account`, `verification`
 - App table: `weight_entries` (id, user_id FK→user.id, entry_date, weight_kg, notes, created_at)
 - Unique constraint: `(user_id, entry_date)` — one entry per user per day
-- Seed: `data/seed/Poids-Grid_view.csv` → demo user `demo@weighttracker.app` / `Demo1234!`
+- Seed: `data/seed/Poids-Grid_view.csv` → demo user `ch.decourcel@gmail.com` / `Demo1234!`
 
 ### Project Structure
 
