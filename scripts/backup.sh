@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Variables (override via env ou .env.local)
-BACKUP_SECRET="${BACKUP_SECRET:-}"
-BETTER_AUTH_URL="${BETTER_AUTH_URL:-}"
-BACKUP_DIR="${BACKUP_DIR:-./backups}"
+# Sauvegarder les variables passées en préfixe (avant que .env.local ne les écrase)
+_PREFIX_BACKUP_SECRET="${BACKUP_SECRET:-}"
+_PREFIX_BETTER_AUTH_URL="${BETTER_AUTH_URL:-}"
+_PREFIX_BACKUP_DIR="${BACKUP_DIR:-}"
 
 # Charger .env.local si présent
 if [[ -f ".env.local" ]]; then
   set -a; source .env.local; set +a
 fi
+
+# Les variables passées en préfixe ont la priorité sur .env.local
+[[ -n "$_PREFIX_BACKUP_SECRET" ]]   && BACKUP_SECRET="$_PREFIX_BACKUP_SECRET"
+[[ -n "$_PREFIX_BETTER_AUTH_URL" ]] && BETTER_AUTH_URL="$_PREFIX_BETTER_AUTH_URL"
+[[ -n "$_PREFIX_BACKUP_DIR" ]]      && BACKUP_DIR="$_PREFIX_BACKUP_DIR"
+
+BACKUP_SECRET="${BACKUP_SECRET:-}"
+BETTER_AUTH_URL="${BETTER_AUTH_URL:-}"
+BACKUP_DIR="${BACKUP_DIR:-./backups}"
 
 # Validation
 if [[ -z "$BACKUP_SECRET" ]]; then
