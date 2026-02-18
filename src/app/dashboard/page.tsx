@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { StatsCards } from "@/components/dashboard/StatsCards";
@@ -16,6 +16,7 @@ import type { WeightEntry, StatsResponse, PaginationMeta } from "@/types/index";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
   const [dateTo, setDateTo] = useState<string | undefined>(undefined);
   const [entries, setEntries] = useState<WeightEntry[]>([]);
@@ -134,9 +135,12 @@ export default function DashboardPage() {
           <Image src="/icon.svg" alt="Weight Tracker" width={40} height={40} />
           <span className="text-xl font-bold text-gray-900">Weight Tracker</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleSignOut}>
-          Se déconnecter
-        </Button>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-500">{session?.user?.email}</span>
+          <Button variant="ghost" size="sm" onClick={handleSignOut}>
+            Se déconnecter
+          </Button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8 flex flex-col gap-8">
