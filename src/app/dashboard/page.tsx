@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
@@ -129,7 +130,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Weight Tracker</h1>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.jpg" alt="Weight Tracker" width={120} height={40} style={{ height: "auto" }} />
+          <span className="text-xl font-bold text-gray-900">Weight Tracker</span>
+        </div>
         <Button variant="ghost" size="sm" onClick={handleSignOut}>
           Se déconnecter
         </Button>

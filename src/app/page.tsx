@@ -1,10 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
       <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Weight Tracker</h1>
+        <div className="flex items-center justify-center gap-4">
+          <Image
+            src="/logo.jpg"
+            alt="Weight Tracker"
+            width={220}
+            height={80}
+            style={{ height: "auto" }}
+            priority
+          />
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Weight Tracker</h1>
+        </div>
         <p className="mt-3 text-lg text-gray-600">
           Suivez l&apos;évolution de votre poids simplement et efficacement.
         </p>
