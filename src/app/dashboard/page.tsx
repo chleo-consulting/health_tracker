@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "@/lib/auth-client";
+import { authClient, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { StatsCards } from "@/components/dashboard/StatsCards";
@@ -18,7 +18,7 @@ import type { WeightEntry, StatsResponse, PaginationMeta } from "@/types/index";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
   const [dateTo, setDateTo] = useState<string | undefined>(undefined);
   const [entries, setEntries] = useState<WeightEntry[]>([]);
@@ -30,6 +30,10 @@ export default function DashboardPage() {
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WeightEntry | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<WeightEntry | null>(null);
+
+  useEffect(() => {
+    authClient.getSession().then((res) => setUserEmail(res.data?.user?.email ?? null));
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -138,7 +142,7 @@ export default function DashboardPage() {
           <span className="text-xl font-bold text-gray-900">Weight Tracker</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">{session?.user?.email}</span>
+          <span className="text-sm text-gray-500">{userEmail}</span>
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             Se déconnecter
           </Button>
