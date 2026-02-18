@@ -43,7 +43,7 @@ const CustomTooltip = ({
   return (
     <div className="rounded-md border bg-white px-3 py-2 shadow-md text-sm">
       <p className="font-medium text-gray-900">{fmtFull(entry.entry_date)}</p>
-      <p className="text-blue-600">{entry.weight_kg} kg</p>
+      <p className="text-peach-600">{entry.weight_kg} kg</p>
       {entry.notes && <p className="text-gray-500 mt-0.5 text-xs">{entry.notes}</p>}
     </div>
   );
@@ -84,9 +84,9 @@ export function WeightChart({ entries, onPointClick }: Props) {
           <Line
             type="monotone"
             dataKey="weight_kg"
-            stroke="#2563eb"
+            stroke="#FF7F51"
             strokeWidth={2}
-            dot={{ r: 4, fill: "#2563eb", strokeWidth: 0 }}
+            dot={{ r: 4, fill: "#FF7F51", strokeWidth: 0 }}
             activeDot={{
               r: 6,
               style: { cursor: "pointer" },

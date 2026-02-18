@@ -23,10 +23,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           aria-describedby={error ? `${inputId}-error` : undefined}
           className={[
             "rounded-md border px-3 py-2 text-sm transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+            "focus:outline-none focus:ring-2 focus:ring-peach-400 focus:ring-offset-1",
             error
               ? "border-red-400 focus:ring-red-400"
-              : "border-gray-300 focus:border-blue-500",
+              : "border-gray-300 focus:border-peach-400",
             className,
           ].join(" ")}
           {...props}

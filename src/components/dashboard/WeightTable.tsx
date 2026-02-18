@@ -54,7 +54,7 @@ export function WeightTable({ entries, onEdit, onDelete, onExport, onImport }: P
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <span className="text-gray-300 ml-1">↕</span>;
-    return <span className="text-blue-600 ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+    return <span className="text-peach-600 ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
 
   return (
@@ -133,7 +133,7 @@ export function WeightTable({ entries, onEdit, onDelete, onExport, onImport }: P
                       <button
                         onClick={() => onEdit(entry)}
                         aria-label="Modifier"
-                        className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded"
+                        className="text-gray-400 hover:text-peach-600 transition-colors p-1 rounded"
                       >
                         ✏️
                       </button>
@@ -159,7 +159,7 @@ export function WeightTable({ entries, onEdit, onDelete, onExport, onImport }: P
           <select
             value={limit}
             onChange={(e) => { setLimit(Number(e.target.value) as 10 | 25 | 50); setPage(1); }}
-            className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-peach-400"
           >
             {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>

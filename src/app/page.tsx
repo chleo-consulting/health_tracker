@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 bg-peach-50">
       <div className="text-center">
         <div className="flex items-center justify-center gap-4">
           <Image
@@ -23,7 +23,7 @@ export default function Home() {
       <div className="flex gap-4">
         <Link
           href="/login"
-          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="rounded-md bg-gradient-to-r from-peach-400 to-peach-600 px-6 py-2.5 text-sm font-medium text-white shadow-md shadow-peach-200 hover:from-peach-500 hover:to-peach-700 transition-all"
         >
           Se connecter
         </Link>

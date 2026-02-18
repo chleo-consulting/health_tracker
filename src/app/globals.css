@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #FFF5F3;
   --foreground: #171717;
 }
 
@@ -10,6 +10,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-peach-50:  #FFF5F3;
+  --color-peach-100: #FFE8E2;
+  --color-peach-200: #FFD5C8;
+  --color-peach-300: #FFB5A7;
+  --color-peach-400: #FF9A76;
+  --color-peach-500: #FF7F51;
+  --color-peach-600: #E8623A;
+  --color-peach-700: #C94D2A;
 }
 
 @media (prefers-color-scheme: dark) {

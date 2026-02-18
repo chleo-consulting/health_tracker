@@ -128,8 +128,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-peach-50">
+      <header className="border-b border-peach-100 bg-gradient-to-r from-peach-50 to-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image src="/icon.svg" alt="Weight Tracker" width={40} height={40} />
           <span className="text-xl font-bold text-gray-900">Weight Tracker</span>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
             </Button>
           </div>
           {importMessage && (
-            <p className="mb-3 rounded-md bg-blue-50 px-4 py-2 text-sm text-blue-700">
+            <p className="mb-3 rounded-md bg-peach-50 px-4 py-2 text-sm text-peach-700">
               {importMessage}
             </p>
           )}

@@ -34,7 +34,7 @@ function ComparativeCard({ label, current, previous }: ComparativeCardProps) {
   const color = diff === null ? "" : diff < 0 ? "text-green-600" : diff > 0 ? "text-red-600" : "text-gray-500";
 
   return (
-    <div className="rounded-lg border bg-white p-4">
+    <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{label}</p>
       <div className="flex items-center gap-3">
         <div className="flex-1">
@@ -60,27 +60,27 @@ export function StatsCards({ stats }: Props) {
     <div className="flex flex-col gap-4">
       {/* Ligne 1 : stats globales */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Dernière pesée</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{fmt(stats.latest?.weight_kg ?? null)} kg</p>
           <p className="text-xs text-gray-400 mt-0.5">{fmtDate(stats.latest?.entry_date ?? null)}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Minimum</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{fmt(stats.min?.weight_kg ?? null)} kg</p>
           <p className="text-xs text-gray-400 mt-0.5">{fmtDate(stats.min?.entry_date ?? null)}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Maximum</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{fmt(stats.max?.weight_kg ?? null)} kg</p>
           <p className="text-xs text-gray-400 mt-0.5">{fmtDate(stats.max?.entry_date ?? null)}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Moyenne</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{fmt(stats.average)} kg</p>
           <p className="text-xs text-gray-400 mt-0.5">{stats.count} pesées</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-lg border border-t-2 border-t-peach-300 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Évolution</p>
           <p className="text-xl font-bold mt-1"><Delta value={stats.delta} /></p>
           <p className="text-xs text-gray-400 mt-0.5">depuis le début</p>

@@ -60,7 +60,7 @@ export function DateRangeFilter({ onRangeChange }: Props) {
           type="date"
           value={customFrom}
           onChange={(e) => { setCustomFrom(e.target.value); setActivePreset(null); }}
-          className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-peach-400"
           aria-label="Date de début"
         />
         <span className="text-gray-400 text-sm">→</span>
@@ -68,7 +68,7 @@ export function DateRangeFilter({ onRangeChange }: Props) {
           type="date"
           value={customTo}
           onChange={(e) => { setCustomTo(e.target.value); setActivePreset(null); }}
-          className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-peach-400"
           aria-label="Date de fin"
         />
         <Button size="sm" variant="secondary" onClick={applyCustom}>
