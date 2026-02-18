@@ -1,8 +1,8 @@
 # Spécifications Fonctionnelles et Techniques
 ## Application « Weight Tracker » — Next.js / SQLite
 
-**Version :** 1.6  
-**Date :** 17 février 2026  
+**Version :** 1.7
+**Date :** 18 février 2026
 **Statut :** Draft — pour validation
 
 ---
@@ -44,7 +44,7 @@ L'application **Weight Tracker** permet à un utilisateur authentifié de saisir
 
 - Partage de données entre utilisateurs.
 - Notifications ou rappels.
-- Import/export à la demande (le CSV initial est injecté en seed uniquement).
+- ~~Import/export à la demande~~ (intégré en v1.7 — voir F-11 et F-12).
 - Application mobile native.
 
 ---
@@ -63,6 +63,8 @@ L'application **Weight Tracker** permet à un utilisateur authentifié de saisir
 | F-08 | Filtrage de l'historique par plage de dates | Should have |
 | F-09 | Indicateurs statistiques (min, max, moyenne, delta, moyennes périodiques) | Should have |
 | F-10 | Seed automatique du CSV fourni au démarrage | Must have |
+| F-11 | Export CSV des pesées de l'utilisateur | Should have |
+| F-12 | Import CSV de pesées (mode upsert) | Should have |
 
 ---
 
@@ -493,6 +495,59 @@ La valeur est `null` si aucune pesée n'existe sur la période concernée.
 
 ---
 
+#### GET `/api/entries/export`
+
+Télécharge toutes les pesées de l'utilisateur connecté au format CSV.
+
+**Format CSV (3 colonnes) :**
+```
+date,weight,notes
+2026-02-17,74.5,Après le sport
+2026-02-15,74.8,
+```
+
+**Réponses :**
+
+| Code | Description |
+|------|-------------|
+| 200 | Fichier CSV retourné |
+| 401 | Non authentifié |
+
+**Headers de la réponse (200) :**
+```
+Content-Type: text/csv; charset=utf-8
+Content-Disposition: attachment; filename="weight-export-YYYY-MM-DD.csv"
+```
+
+---
+
+#### POST `/api/entries/import`
+
+Importe un fichier CSV de pesées en mode upsert. Le fichier est envoyé en `multipart/form-data` avec le champ `file`.
+
+**Format CSV attendu :** identique au format d'export (`date,weight,notes`).
+
+**Réponse (200) :**
+```json
+{
+  "imported": 95,
+  "skipped": 3,
+  "errors": [
+    { "line": 4, "message": "Format YYYY-MM-DD requis" }
+  ]
+}
+```
+
+**Réponses :**
+
+| Code | Description |
+|------|-------------|
+| 200 | Import effectué (succès total ou partiel) |
+| 400 | Aucune ligne valide dans le fichier |
+| 401 | Non authentifié |
+
+---
+
 ### 7.3 Format des erreurs
 
 Toutes les réponses d'erreur suivent le format uniforme :
@@ -726,6 +781,10 @@ health-tracker/
 │   │   │       ├── route.ts          # GET (liste) + POST (upsert)
 │   │   │       ├── stats/
 │   │   │       │   └── route.ts      # GET (statistiques)
+│   │   │       ├── export/
+│   │   │       │   └── route.ts      # GET (CSV export)
+│   │   │       ├── import/
+│   │   │       │   └── route.ts      # POST (CSV import)
 │   │   │       └── [id]/
 │   │   │           └── route.ts      # GET + DELETE
 │   │   └── admin/
@@ -1126,4 +1185,4 @@ Alternativement, utiliser Railway Storage Buckets pour archiver les sauvegardes 
 
 ---
 
-*Fin des spécifications — Version 1.6*
+*Fin des spécifications — Version 1.7*

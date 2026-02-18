@@ -97,6 +97,35 @@ export default function DashboardPage() {
     await fetchData();
   };
 
+  const handleExport = async () => {
+    const res = await fetch("/api/entries/export");
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const disposition = res.headers.get("Content-Disposition") ?? "";
+    const fileMatch = disposition.match(/filename="([^"]+)"/);
+    a.href = url;
+    a.download = fileMatch?.[1] ?? "weight-export.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+
+  const handleImport = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/entries/import", { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) {
+      setImportMessage(`Erreur : ${data.error?.message ?? "Import échoué"}`);
+    } else {
+      setImportMessage(`Import terminé : ${data.imported} ajoutée(s), ${data.skipped} ignorée(s).`);
+      await fetchData();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
@@ -145,6 +174,11 @@ export default function DashboardPage() {
               Ajouter une pesée
             </Button>
           </div>
+          {importMessage && (
+            <p className="mb-3 rounded-md bg-blue-50 px-4 py-2 text-sm text-blue-700">
+              {importMessage}
+            </p>
+          )}
           {loading ? (
             <p className="text-sm text-gray-500">Chargement des données…</p>
           ) : (
@@ -152,6 +186,8 @@ export default function DashboardPage() {
               entries={entries}
               onEdit={openEdit}
               onDelete={(entry) => setDeletingEntry(entry)}
+              onExport={handleExport}
+              onImport={handleImport}
             />
           )}
         </section>

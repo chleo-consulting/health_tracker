@@ -55,10 +55,12 @@ const { GET: getStats } = await import("../../app/api/entries/stats/route");
 const { GET: getById, DELETE: deleteById } = await import(
   "../../app/api/entries/[id]/route"
 );
+const { GET: exportEntries } = await import("../../app/api/entries/export/route");
+const { POST: importEntries } = await import("../../app/api/entries/import/route");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function makeRequest(url: string, options?: RequestInit): NextRequest {
+function makeRequest(url: string, options?: ConstructorParameters<typeof NextRequest>[1]): NextRequest {
   return new NextRequest(new URL(url, "http://localhost:3000"), options);
 }
 
@@ -367,5 +369,145 @@ describe("DELETE /api/entries/:id", () => {
       .query(`SELECT id FROM weight_entries WHERE id = ?`)
       .all(id);
     expect(remaining).toHaveLength(1);
+  });
+});
+
+// ─── GET /api/entries/export ──────────────────────────────────────────────────
+
+describe("GET /api/entries/export", () => {
+  it("retourne 401 sans session", async () => {
+    currentSession = null;
+    const res = await exportEntries(makeRequest("http://localhost:3000/api/entries/export"));
+    expect(res.status).toBe(401);
+  });
+
+  it("retourne un CSV vide (header uniquement) si aucune pesée", async () => {
+    const res = await exportEntries(makeRequest("http://localhost:3000/api/entries/export"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("text/csv");
+    expect(res.headers.get("Content-Disposition")).toMatch(/attachment; filename="weight-export-/);
+    const text = await res.text();
+    expect(text).toBe("date,weight,notes");
+  });
+
+  it("retourne les pesées triées par date ASC", async () => {
+    insertEntry("user1", "2026-01-10", 75.0, "note");
+    insertEntry("user1", "2026-01-01", 74.5);
+
+    const res = await exportEntries(makeRequest("http://localhost:3000/api/entries/export"));
+    const text = await res.text();
+    const lines = text.split("\n");
+
+    expect(lines[0]).toBe("date,weight,notes");
+    expect(lines[1]).toMatch(/^2026-01-01,/);
+    expect(lines[2]).toMatch(/^2026-01-10,/);
+  });
+
+  it("formate correctement les notes avec guillemets", async () => {
+    insertEntry("user1", "2026-01-15", 74.5, 'note avec "guillemets"');
+
+    const res = await exportEntries(makeRequest("http://localhost:3000/api/entries/export"));
+    const text = await res.text();
+    const dataLine = text.split("\n")[1];
+
+    expect(dataLine).toContain('"note avec ""guillemets"""');
+  });
+
+  it("n'exporte que les pesées de l'utilisateur connecté", async () => {
+    insertEntry("user1", "2026-01-01", 75.0);
+    insertEntry("user2", "2026-01-02", 80.0);
+
+    const res = await exportEntries(makeRequest("http://localhost:3000/api/entries/export"));
+    const text = await res.text();
+    const lines = text.split("\n").filter(Boolean);
+
+    expect(lines).toHaveLength(2); // header + 1 entrée
+  });
+});
+
+// ─── POST /api/entries/import ─────────────────────────────────────────────────
+
+function makeImportRequest(csvContent: string): NextRequest {
+  const file = new File([csvContent], "test.csv", { type: "text/csv" });
+  const formData = new FormData();
+  formData.append("file", file);
+  return new NextRequest("http://localhost:3000/api/entries/import", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+describe("POST /api/entries/import", () => {
+  it("retourne 401 sans session", async () => {
+    currentSession = null;
+    const res = await importEntries(makeImportRequest("date,weight,notes\n2026-01-01,75.0,"));
+    expect(res.status).toBe(401);
+  });
+
+  it("importe des lignes valides", async () => {
+    const csv = "date,weight,notes\n2026-01-01,75.0,\n2026-01-02,74.5,note";
+    const res = await importEntries(makeImportRequest(csv));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.imported).toBe(2);
+    expect(json.skipped).toBe(0);
+    expect(json.errors).toHaveLength(0);
+
+    const rows = testSqlite.query("SELECT * FROM weight_entries").all();
+    expect(rows).toHaveLength(2);
+  });
+
+  it("mode upsert : met à jour une entrée existante", async () => {
+    insertEntry("user1", "2026-01-01", 75.0);
+
+    const csv = "date,weight,notes\n2026-01-01,72.0,après sport";
+    const res = await importEntries(makeImportRequest(csv));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.imported).toBe(1);
+
+    const row = testSqlite
+      .query("SELECT weight_kg, notes FROM weight_entries WHERE entry_date = '2026-01-01'")
+      .get() as { weight_kg: number; notes: string };
+    expect(row.weight_kg).toBe(72.0);
+    expect(row.notes).toBe("après sport");
+  });
+
+  it("ignore les lignes invalides et compte les erreurs", async () => {
+    const csv = [
+      "date,weight,notes",
+      "2026-01-01,75.0,ok",
+      "date-invalide,75.0,",
+      "2099-01-01,75.0,futur",
+      "2026-01-03,200.0,trop lourd",
+    ].join("\n");
+
+    const res = await importEntries(makeImportRequest(csv));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.imported).toBe(1);
+    expect(json.skipped).toBe(3);
+    expect(json.errors).toHaveLength(3);
+  });
+
+  it("retourne 400 si aucune ligne valide", async () => {
+    const csv = "date,weight,notes\nmauvais,données,ici";
+    const res = await importEntries(makeImportRequest(csv));
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("n'importe que pour l'utilisateur connecté", async () => {
+    const csv = "date,weight,notes\n2026-01-01,75.0,";
+    await importEntries(makeImportRequest(csv));
+
+    const rows = testSqlite
+      .query("SELECT * FROM weight_entries WHERE user_id = 'user1'")
+      .all();
+    expect(rows).toHaveLength(1);
   });
 });

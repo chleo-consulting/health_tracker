@@ -74,6 +74,8 @@ src/
 │   │   ├── auth/register/           # Custom registration with Zod validation
 │   │   ├── entries/                  # GET (list) + POST (upsert)
 │   │   ├── entries/stats/            # GET (aggregated statistics)
+│   │   ├── entries/export/           # GET (CSV export)
+│   │   ├── entries/import/           # POST (CSV import)
 │   │   ├── entries/[id]/             # GET + DELETE single entry
 │   │   ├── admin/backup/             # GET (SQLite backup via VACUUM INTO)
 │   │   └── health/                   # GET (Railway healthcheck)

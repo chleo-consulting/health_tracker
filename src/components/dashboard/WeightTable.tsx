@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import type { WeightEntry } from "@/types/index";
 
@@ -8,6 +8,8 @@ interface Props {
   entries: WeightEntry[];
   onEdit: (e: WeightEntry) => void;
   onDelete: (e: WeightEntry) => void;
+  onExport: () => void;
+  onImport: (file: File) => void;
 }
 
 type SortField = "entry_date" | "weight_kg";
@@ -20,9 +22,10 @@ function fmtDate(d: string): string {
 
 const PAGE_SIZES = [10, 25, 50] as const;
 
-export function WeightTable({ entries, onEdit, onDelete }: Props) {
+export function WeightTable({ entries, onEdit, onDelete, onExport, onImport }: Props) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState<10 | 25 | 50>(10);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sortField, setSortField] = useState<SortField>("entry_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -56,6 +59,27 @@ export function WeightTable({ entries, onEdit, onDelete }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex justify-end gap-2">
+        <Button variant="secondary" size="sm" onClick={onExport}>
+          Export CSV
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+          Import CSV
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              onImport(file);
+              e.target.value = "";
+            }
+          }}
+        />
+      </div>
       <div className="overflow-x-auto rounded-lg border bg-white">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
