@@ -60,12 +60,27 @@ export function WeightTable({ entries, onEdit, onDelete, onExport, onImport }: P
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-end gap-2">
-        <Button variant="secondary" size="sm" onClick={onExport}>
-          Export CSV
-        </Button>
-        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-          Import CSV
-        </Button>
+        <span className="relative group">
+          <Button variant="secondary" size="sm" onClick={onExport}>
+            Export CSV
+          </Button>
+          <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded bg-gray-800 px-2.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity z-10 text-center leading-relaxed">
+            Télécharge toutes vos pesées au format CSV (colonnes : date, weight, notes)
+          </span>
+        </span>
+
+        <span className="relative group">
+          <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+            Import CSV
+          </Button>
+          <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded bg-gray-800 px-2.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity z-10 leading-relaxed">
+            Importe un fichier CSV en mode upsert.<br/>
+            Colonnes requises : <strong>date</strong>, <strong>weight</strong>, <strong>notes</strong><br/>
+            Format date : <strong>YYYY-MM-DD</strong><br/>
+            Les pesées existantes sont mises à jour.
+          </span>
+        </span>
+
         <input
           ref={fileInputRef}
           type="file"
