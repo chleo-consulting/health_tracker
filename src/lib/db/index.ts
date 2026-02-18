@@ -1,3 +1,5 @@
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import * as schema from "./schema";
@@ -10,6 +12,7 @@ let _db: DrizzleDb | null = null;
 function init(): { sqlite: Database; db: DrizzleDb } {
   if (!_sqlite || !_db) {
     const dbPath = process.env.DATABASE_PATH ?? "./data/health-tracker.db";
+    mkdirSync(dirname(dbPath), { recursive: true });
     _sqlite = new Database(dbPath);
     _sqlite.run("PRAGMA journal_mode = WAL");
     _sqlite.run("PRAGMA foreign_keys = ON");
