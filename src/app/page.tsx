@@ -7,7 +7,7 @@ export default function Home() {
       <div className="text-center">
         <div className="flex items-center justify-center gap-4">
           <Image
-            src="/logo.jpg"
+            src="/icon.svg"
             alt="Weight Tracker"
             width={220}
             height={80}
