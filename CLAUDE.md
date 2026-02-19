@@ -17,7 +17,6 @@ bun run build        # Build for production
 bun run lint         # Run ESLint
 bun start            # Start production server
 bun test             # Run tests (Bun test + React Testing Library)
-bun run seed         # Run database seed script
 bunx drizzle-kit generate  # Generate Drizzle migrations
 bunx drizzle-kit push      # Apply migrations to SQLite
 bunx drizzle-kit studio    # Visual DB explorer
@@ -60,7 +59,6 @@ This is a Next.js 16.1 application using the App Router pattern with:
 - Tables managed by Better-auth: `user`, `session`, `account`, `verification`
 - App table: `weight_entries` (id, user_id FK→user.id, entry_date, weight_kg, notes, created_at)
 - Unique constraint: `(user_id, entry_date)` — one entry per user per day
-- Seed: `data/seed/Poids-Grid_view.csv` → demo user `ch.decourcel@gmail.com` / `Demo1234!`
 
 ### Project Structure
 
@@ -89,14 +87,12 @@ src/
 ├── lib/
 │   ├── db/index.ts    # bun:sqlite + Drizzle instance
 │   ├── db/schema.ts   # Drizzle schema (Better-auth tables + weight_entries)
-│   ├── db/seed.ts     # CSV seed logic
 │   ├── auth.ts        # Better-auth config
 │   └── validations/   # Zod schemas (auth, entries)
 └── types/             # Shared TypeScript types
 middleware.ts          # Route protection (JWT validation)
 data/
-├── health-tracker.db  # SQLite file (generated)
-└── seed/Poids-Grid_view.csv
+└── health-tracker.db  # SQLite file (generated)
 ```
 
 - `@/*` path alias maps to project root

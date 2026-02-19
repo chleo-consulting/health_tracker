@@ -62,7 +62,6 @@ L'application **Weight Tracker** permet à un utilisateur authentifié de saisir
 | F-07 | Tableau de l'historique paginé et trié | Must have |
 | F-08 | Filtrage de l'historique par plage de dates | Should have |
 | F-09 | Indicateurs statistiques (min, max, moyenne, delta, moyennes périodiques) | Should have |
-| F-10 | Seed automatique du CSV fourni au démarrage | Must have |
 | F-11 | Export CSV des pesées de l'utilisateur | Should have |
 | F-12 | Import CSV de pesées (mode upsert) | Should have |
 
@@ -625,45 +624,9 @@ curl -H "Authorization: Bearer <BACKUP_SECRET>" \
 
 Le schéma est créé via Drizzle ORM lors du premier démarrage (`drizzle-kit push` ou migration automatique au boot). Le driver SQLite utilisé est **`bun:sqlite`**, l'API SQLite native de Bun — aucune dépendance externe n'est nécessaire.
 
-### 8.2 Script de seed
+### 8.2 Initialisation
 
-Un script `scripts/seed.ts` est exécuté automatiquement si la base de données est vide (aucune entrée dans la table `users`).
-
-**Comportement du seed :**
-
-1. Créer un utilisateur de démonstration :
-   - Email : `ch.decourcel@gmail.com`
-   - Mot de passe : `Demo1234!` (haché avant insertion)
-
-2. Insérer les 101 pesées du fichier `data/seed/weights_chcdc.csv` associées à cet utilisateur.
-
-**Règles de conversion du CSV :**
-- La colonne `Jour` est au format `YYYY-MM-DD`.
-- La colonne `Poids` est castée en `REAL`.
-- La colonne `Notes` est insérée telle quelle (NULL si vide).
-
-**Exemple de lignes du CSV source :**
-
-| Jour | Poids | Notes |
-|------|-------|-------|
-| 17/2/2026 | 74.5 | *(vide)* |
-| 19/7/2023 | 78.5 | retour d'Italie |
-| 4/4/2023 | 78.4 | Après 1 semaine a Méribel |
-| 8/2/2023 | 77.5 | intoxication alimentaire le 3 fev. Perte d'appétit |
-| 4/1/2023 | 79.6 | juste après les fêtes !! |
-
-### 8.3 Déclenchement du seed
-
-```typescript
-// Extrait de src/lib/db/seed.ts
-import { db } from "./index"; // Instance Drizzle partagée
-import { user } from "./schema"; // Table Better-auth
-
-const existingUsers = await db.select().from(user).limit(1);
-if (existingUsers.length === 0) {
-  await runSeed();
-}
-```
+Aucun seed automatique. Le schéma est créé via `drizzle-kit push` au démarrage. Les utilisateurs s'inscrivent via le formulaire `/register`.
 
 ---
 
@@ -812,8 +775,7 @@ health-tracker/
 │   │   ├── db/
 │   │   │   ├── index.ts              # Instance bun:sqlite + Drizzle
 │   │   │   ├── schema.ts             # Schéma Drizzle (tables app + tables better-auth)
-│   │   │   ├── migrations/
-│   │   │   └── seed.ts               # Seed CSV
+│   │   │   └── migrations/
 │   │   ├── auth.ts                   # Config Better-auth
 │   │   ├── validations/
 │   │   │   ├── auth.schema.ts
@@ -823,17 +785,13 @@ health-tracker/
 │   └── types/
 │       └── index.ts                  # Types partagés
 ├── data/
-│   ├── health-tracker.db             # Fichier SQLite (généré)
-│   └── seed/
-│       └── weights_chcdc.csv       # Données initiales
-├── scripts/
-│   └── seed.ts                       # Script de seed exécutable
+│   └── health-tracker.db             # Fichier SQLite (généré)
 ├── middleware.ts                     # Protection des routes
 ├── next.config.ts
 ├── drizzle.config.ts
 ├── tailwind.config.ts
 ├── bunfig.toml                       # Configuration Bun
-└── package.json                      # Scripts : bun dev / bun start / bun run seed
+└── package.json                      # Scripts : bun dev / bun start
 ```
 
 ---
@@ -947,21 +905,6 @@ bunx drizzle-kit push
 - Créer `src/app/api/auth/register/route.ts` : validation Zod + hachage bcrypt + insertion en base.
 - Créer `src/middleware.ts` : protéger les routes `/dashboard` et `/api/entries` via la session Better-auth.
 - Tester manuellement : inscription → cookie présent, accès `/dashboard` autorisé, accès sans session redirigé vers `/login`.
-
----
-
-### Étape 4 — Seed de la base de données
-
-- Créer `src/lib/db/seed.ts` :
-  - Lire et parser `data/seed/weights_chcdc.csv` avec `Bun.file()`.
-  - Créer l'utilisateur de démo (`ch.decourcel@gmail.com` / `Demo1234!`).
-  - Insérer les 101 pesées en transaction.
-- Déclencher le seed automatiquement au boot si la table `users` est vide.
-- Vérifier via `bunx drizzle-kit studio` ou requête directe que les données sont correctement insérées.
-
-```bash
-bun run src/lib/db/seed.ts
-```
 
 ---
 

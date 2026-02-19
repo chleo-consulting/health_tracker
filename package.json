@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "bun run src/lib/db/seed.ts",
     "test": "bun test"
   },
   "dependencies": {
