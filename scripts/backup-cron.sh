@@ -20,34 +20,27 @@ fi
 echo "[backup-cron] Backup téléchargé : ${FILENAME} ($(du -h "$TMP" | cut -f1))"
 
 # 2. Upload vers Railway Object Storage (S3-compatible)
-# Railway injecte ACCESS_KEY_ID / SECRET_ACCESS_KEY (sans préfixe AWS_)
-AWS_ACCESS_KEY_ID="$ACCESS_KEY_ID" \
-AWS_SECRET_ACCESS_KEY="$SECRET_ACCESS_KEY" \
-  aws s3 cp "$TMP" "s3://${BUCKET}/${FILENAME}" \
-  --endpoint-url "$ENDPOINT" \
-  --region "${REGION:-auto}"
+aws s3 cp "$TMP" "s3://${AWS_S3_BUCKET_NAME}/${FILENAME}" \
+  --endpoint-url "$AWS_ENDPOINT_URL" \
+  --region "${AWS_DEFAULT_REGION:-auto}"
 
-echo "[backup-cron] Upload OK : s3://${BUCKET}/${FILENAME}"
+echo "[backup-cron] Upload OK : s3://${AWS_S3_BUCKET_NAME}/${FILENAME}"
 rm -f "$TMP"
 
 # 3. Purger les backups > 7 jours
 CUTOFF=$(date -d "7 days ago" +%F)
-AWS_ACCESS_KEY_ID="$ACCESS_KEY_ID" \
-AWS_SECRET_ACCESS_KEY="$SECRET_ACCESS_KEY" \
-  aws s3 ls "s3://${BUCKET}/" \
-  --endpoint-url "$ENDPOINT" \
-  --region "${REGION:-auto}" \
+aws s3 ls "s3://${AWS_S3_BUCKET_NAME}/" \
+  --endpoint-url "$AWS_ENDPOINT_URL" \
+  --region "${AWS_DEFAULT_REGION:-auto}" \
   | awk '{print $4}' \
   | grep '^backup-' \
   | while read -r key; do
       KEY_DATE="${key#backup-}"
       KEY_DATE="${KEY_DATE%.db}"
       if [[ "$KEY_DATE" < "$CUTOFF" ]]; then
-        AWS_ACCESS_KEY_ID="$ACCESS_KEY_ID" \
-        AWS_SECRET_ACCESS_KEY="$SECRET_ACCESS_KEY" \
-          aws s3 rm "s3://${BUCKET}/${key}" \
-          --endpoint-url "$ENDPOINT" \
-          --region "${REGION:-auto}"
+        aws s3 rm "s3://${AWS_S3_BUCKET_NAME}/${key}" \
+          --endpoint-url "$AWS_ENDPOINT_URL" \
+          --region "${AWS_DEFAULT_REGION:-auto}"
         echo "[backup-cron] Supprimé : ${key}"
       fi
     done
