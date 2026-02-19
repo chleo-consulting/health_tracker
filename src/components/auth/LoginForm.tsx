@@ -41,7 +41,12 @@ export function LoginForm() {
         </p>
       )}
       <Input label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register("email")} />
-      <Input label="Mot de passe" type="password" autoComplete="current-password" error={errors.password?.message} {...register("password")} />
+      <div className="flex flex-col gap-1">
+        <Input label="Mot de passe" type="password" autoComplete="current-password" error={errors.password?.message} {...register("password")} />
+        <Link href="/forgot-password" className="self-end text-xs text-peach-600 hover:underline">
+          Mot de passe oublié ?
+        </Link>
+      </div>
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Connexion…" : "Se connecter"}
       </Button>
