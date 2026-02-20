@@ -4,7 +4,7 @@
     "builder": "RAILPACK"
   },
   "deploy": {
-    "startCommand": "mkdir -p \"$(dirname \"${DATABASE_PATH:-./data/health-tracker.db}\")\" && bunx drizzle-kit push && bun run start",
+    "startCommand": "mkdir -p \"$(dirname \"${DATABASE_PATH:-./data/health-tracker.db}\")\" && bunx drizzle-kit migrate && bun run start",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
