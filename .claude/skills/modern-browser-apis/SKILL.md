@@ -1,6 +1,7 @@
 ---
 name: use-modern-browser-apis
 description: Utilize built-in browser APIs (like Popover API, View Transitions etc) instead of building features manually via JavaScript
+user-invocable: false
 ---
 
 # Using Modern Browser APIs

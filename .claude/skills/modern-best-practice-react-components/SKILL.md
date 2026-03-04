@@ -1,6 +1,7 @@
 ---
 name: modern-best-practice-react-components
 description: Build clean, modern React components that apply common best practices and avoid common pitfalls like unnecessary state management or useEffect usage
+user-invocable: false
 ---
 
 # Writing React Components

@@ -1,6 +1,7 @@
 ---
 name: modern-best-practice-nextjs
 description: Build modern Next.js apps with App Router and best practices
+user-invocable: false
 ---
 
 # Next.js Best Practices (App Router)

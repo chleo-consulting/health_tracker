@@ -1,6 +1,7 @@
 ---
 name: modern-tailwind
 description: Build clean, scalable UIs with Tailwind CSS using modern utilities and variants
+user-invocable: false
 ---
 
 # Tailwind CSS Best Practices

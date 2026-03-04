@@ -1,6 +1,7 @@
 ---
 name: modern-accessible-html-jsx
 description: Write clean, modern, and highly accessible HTML & JSX code, using semantically correct elements and attributes
+user-invocable: false
 ---
 
 # Clean & Accessible HTML

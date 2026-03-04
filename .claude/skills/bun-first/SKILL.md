@@ -1,6 +1,7 @@
 ---
 name: bun-first
 description: Describes efficient usage of Bun and Bun APIs instead of Node.js (and its APIs)
+user-invocable: false
 ---
 
 # Bun-First Development

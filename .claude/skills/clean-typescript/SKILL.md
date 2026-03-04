@@ -1,6 +1,7 @@
 ---
 name: clean-typescript
 description: Write clean, efficient TypeScript code that follows common best practices
+user-invocable: false
 ---
 
 # Clean TypeScript

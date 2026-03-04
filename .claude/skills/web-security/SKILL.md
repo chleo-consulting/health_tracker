@@ -1,6 +1,7 @@
 ---
 name: web-security
 description: Enforce web security and avoid security vulnerabilities
+user-invocable: false
 ---
 
 # Web Security
