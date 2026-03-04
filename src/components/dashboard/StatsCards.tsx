@@ -71,8 +71,13 @@ function ComparativeCard({ label, current, previous, currentLabel, previousLabel
           <p className="text-xs text-gray-400">{currentLabel}</p>
           <p className="text-lg font-semibold text-gray-900">{fmt(current)} kg</p>
         </div>
-        {arrow && (
-          <span className={`text-2xl font-bold ${color}`}>{arrow}</span>
+        {arrow && diff !== null && (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className={`text-2xl font-bold ${color}`}>{arrow}</span>
+            <span className={`text-xs font-semibold ${color}`}>
+              {diff > 0 ? "+" : ""}{diff.toFixed(1)}
+            </span>
+          </div>
         )}
         <div className="flex-1 text-right">
           <p className="text-xs text-gray-400">{previousLabel}</p>
