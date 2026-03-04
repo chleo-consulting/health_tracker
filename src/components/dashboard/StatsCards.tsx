@@ -91,17 +91,17 @@ export function StatsCards({ stats }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <ComparativeCard
           label="Mois"
-          current={stats.average_last_month}
+          current={stats.average_current_month}
           previous={stats.average_previous_month}
         />
         <ComparativeCard
           label="Trimestre"
-          current={stats.average_last_quarter}
+          current={stats.average_current_quarter}
           previous={stats.average_previous_quarter}
         />
         <ComparativeCard
           label="Année"
-          current={stats.average_last_year}
+          current={stats.average_current_year}
           previous={stats.average_previous_year}
         />
       </div>

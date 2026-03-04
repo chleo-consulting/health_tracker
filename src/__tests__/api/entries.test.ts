@@ -285,11 +285,11 @@ describe("GET /api/entries/stats", () => {
     const res = await getStats(makeRequest("http://localhost:3000/api/entries/stats"));
     const json = await res.json();
 
-    expect("average_last_month" in json.data).toBe(true);
+    expect("average_current_month" in json.data).toBe(true);
     expect("average_previous_month" in json.data).toBe(true);
-    expect("average_last_quarter" in json.data).toBe(true);
+    expect("average_current_quarter" in json.data).toBe(true);
     expect("average_previous_quarter" in json.data).toBe(true);
-    expect("average_last_year" in json.data).toBe(true);
+    expect("average_current_year" in json.data).toBe(true);
     expect("average_previous_year" in json.data).toBe(true);
   });
 });

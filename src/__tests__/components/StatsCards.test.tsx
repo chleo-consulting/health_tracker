@@ -12,11 +12,11 @@ const baseStats: StatsResponse = {
   average: 72.3,
   latest: { weight_kg: 72.0, entry_date: "2026-02-01" },
   delta: 2.0,
-  average_last_month: null,
+  average_current_month: null,
   average_previous_month: null,
-  average_last_quarter: null,
+  average_current_quarter: null,
   average_previous_quarter: null,
-  average_last_year: null,
+  average_current_year: null,
   average_previous_year: null,
 };
 
@@ -63,7 +63,7 @@ describe("StatsCards", () => {
   it("affiche la flèche ↓ quand le mois actuel est inférieur au précédent", () => {
     const stats: StatsResponse = {
       ...baseStats,
-      average_last_month: 70.0,
+      average_current_month: 70.0,
       average_previous_month: 72.0,
     };
     render(<StatsCards stats={stats} />);
@@ -73,7 +73,7 @@ describe("StatsCards", () => {
   it("affiche la flèche ↑ quand le mois actuel est supérieur au précédent", () => {
     const stats: StatsResponse = {
       ...baseStats,
-      average_last_month: 73.0,
+      average_current_month: 73.0,
       average_previous_month: 71.0,
     };
     render(<StatsCards stats={stats} />);

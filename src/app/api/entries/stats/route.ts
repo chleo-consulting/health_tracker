@@ -12,38 +12,36 @@ function formatDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function calculatePeriods(now: Date) {
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
+function calculatePeriods(refDate: Date) {
+  const year = refDate.getFullYear();
+  const month = refDate.getMonth(); // 0-indexed
+
+  // Mois courant (celui qui contient la dernière donnée)
+  const currentMonthFrom = formatDate(new Date(year, month, 1));
+  const currentMonthTo = formatDate(new Date(year, month + 1, 0));
 
   // Mois précédent
-  const lastMonthFrom = formatDate(new Date(year, month - 1, 1));
-  const lastMonthTo = formatDate(new Date(year, month, 0));
+  const prevMonthFrom = formatDate(new Date(year, month - 1, 1));
+  const prevMonthTo = formatDate(new Date(year, month, 0));
 
-  // Mois d'avant le mois précédent
-  const prevMonthFrom = formatDate(new Date(year, month - 2, 1));
-  const prevMonthTo = formatDate(new Date(year, month - 1, 0));
+  // Trimestre courant
+  const currentQuarter = Math.floor(month / 3);
+  const currentQuarterFrom = formatDate(new Date(year, currentQuarter * 3, 1));
+  const currentQuarterTo = formatDate(new Date(year, currentQuarter * 3 + 3, 0));
 
   // Trimestre précédent
-  const currentQuarter = Math.floor(month / 3);
-  const lastQuarterNum = currentQuarter === 0 ? 3 : currentQuarter - 1;
-  const lastQuarterYear = currentQuarter === 0 ? year - 1 : year;
-  const lastQuarterFrom = formatDate(new Date(lastQuarterYear, lastQuarterNum * 3, 1));
-  const lastQuarterTo = formatDate(new Date(lastQuarterYear, lastQuarterNum * 3 + 3, 0));
-
-  // Trimestre d'avant le trimestre précédent
-  const prevQuarterNum = lastQuarterNum === 0 ? 3 : lastQuarterNum - 1;
-  const prevQuarterYear = lastQuarterNum === 0 ? lastQuarterYear - 1 : lastQuarterYear;
+  const prevQuarterNum = currentQuarter === 0 ? 3 : currentQuarter - 1;
+  const prevQuarterYear = currentQuarter === 0 ? year - 1 : year;
   const prevQuarterFrom = formatDate(new Date(prevQuarterYear, prevQuarterNum * 3, 1));
   const prevQuarterTo = formatDate(new Date(prevQuarterYear, prevQuarterNum * 3 + 3, 0));
 
   return {
-    lastMonth: { from: lastMonthFrom, to: lastMonthTo },
+    currentMonth: { from: currentMonthFrom, to: currentMonthTo },
     previousMonth: { from: prevMonthFrom, to: prevMonthTo },
-    lastQuarter: { from: lastQuarterFrom, to: lastQuarterTo },
+    currentQuarter: { from: currentQuarterFrom, to: currentQuarterTo },
     previousQuarter: { from: prevQuarterFrom, to: prevQuarterTo },
-    lastYear: { from: `${year - 1}-01-01`, to: `${year - 1}-12-31` },
-    previousYear: { from: `${year - 2}-01-01`, to: `${year - 2}-12-31` },
+    currentYear: { from: `${year}-01-01`, to: `${year}-12-31` },
+    previousYear: { from: `${year - 1}-01-01`, to: `${year - 1}-12-31` },
   };
 }
 
@@ -81,7 +79,19 @@ export async function GET(request: NextRequest) {
   if (to) conditions.push(lte(weightEntries.entryDate, to));
 
   const where = and(...conditions);
-  const periods = calculatePeriods(new Date());
+
+  // Récupère la dernière entrée globale pour déterminer la période courante
+  const latestGlobal = await db
+    .select({ entry_date: weightEntries.entryDate })
+    .from(weightEntries)
+    .where(eq(weightEntries.userId, userId))
+    .orderBy(desc(weightEntries.entryDate))
+    .limit(1);
+
+  const refDate = latestGlobal[0]?.entry_date
+    ? new Date(latestGlobal[0].entry_date + "T12:00:00")
+    : new Date();
+  const periods = calculatePeriods(refDate);
 
   const [
     aggregates,
@@ -89,11 +99,11 @@ export async function GET(request: NextRequest) {
     maxEntry,
     latestEntry,
     firstEntry,
-    avgLastMonth,
+    avgCurrentMonth,
     avgPreviousMonth,
-    avgLastQuarter,
+    avgCurrentQuarter,
     avgPreviousQuarter,
-    avgLastYear,
+    avgCurrentYear,
     avgPreviousYear,
   ] = await Promise.all([
     db
@@ -124,11 +134,11 @@ export async function GET(request: NextRequest) {
       .where(where)
       .orderBy(asc(weightEntries.entryDate))
       .limit(1),
-    getPeriodAvg(userId, periods.lastMonth.from, periods.lastMonth.to),
+    getPeriodAvg(userId, periods.currentMonth.from, periods.currentMonth.to),
     getPeriodAvg(userId, periods.previousMonth.from, periods.previousMonth.to),
-    getPeriodAvg(userId, periods.lastQuarter.from, periods.lastQuarter.to),
+    getPeriodAvg(userId, periods.currentQuarter.from, periods.currentQuarter.to),
     getPeriodAvg(userId, periods.previousQuarter.from, periods.previousQuarter.to),
-    getPeriodAvg(userId, periods.lastYear.from, periods.lastYear.to),
+    getPeriodAvg(userId, periods.currentYear.from, periods.currentYear.to),
     getPeriodAvg(userId, periods.previousYear.from, periods.previousYear.to),
   ]);
 
@@ -149,11 +159,11 @@ export async function GET(request: NextRequest) {
       average,
       latest: latestEntry[0] ?? null,
       delta,
-      average_last_month: avgLastMonth,
+      average_current_month: avgCurrentMonth,
       average_previous_month: avgPreviousMonth,
-      average_last_quarter: avgLastQuarter,
+      average_current_quarter: avgCurrentQuarter,
       average_previous_quarter: avgPreviousQuarter,
-      average_last_year: avgLastYear,
+      average_current_year: avgCurrentYear,
       average_previous_year: avgPreviousYear,
     },
   });

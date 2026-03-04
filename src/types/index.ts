@@ -20,10 +20,10 @@ export interface StatsResponse {
   average: number | null;
   latest: { weight_kg: number; entry_date: string } | null;
   delta: number | null;
-  average_last_month: number | null;
+  average_current_month: number | null;
   average_previous_month: number | null;
-  average_last_quarter: number | null;
+  average_current_quarter: number | null;
   average_previous_quarter: number | null;
-  average_last_year: number | null;
+  average_current_year: number | null;
   average_previous_year: number | null;
 }
