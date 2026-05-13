@@ -17,8 +17,8 @@ bun run build        # Build for production
 bun run lint         # Run ESLint
 bun start            # Start production server
 bun test             # Run tests (Bun test + React Testing Library)
-bunx drizzle-kit generate  # Generate Drizzle migrations
-bunx drizzle-kit push      # Apply migrations to SQLite
+bunx drizzle-kit generate  # Generate Drizzle migrations (PostgreSQL)
+bunx drizzle-kit migrate   # Apply pending migrations (nécessite DATABASE_DIRECT_URL ou DATABASE_URL)
 bunx drizzle-kit studio    # Visual DB explorer
 ```
 
@@ -26,10 +26,10 @@ bunx drizzle-kit studio    # Visual DB explorer
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_PATH` | Path to SQLite file (default: `./data/health-tracker.db`) |
+| `DATABASE_URL` | Supabase connection string **pooled** (port 6543, Transaction mode) — app runtime |
+| `DATABASE_DIRECT_URL` | Supabase connection string **directe** (port 5432) — drizzle-kit migrations uniquement |
 | `BETTER_AUTH_SECRET` | JWT signing secret for Better-auth (min 32 chars) |
-| `BETTER_AUTH_URL` | Public app URL (e.g. `https://monapp.up.railway.app`) |
-| `BACKUP_SECRET` | Bearer token for `GET /api/admin/backup` (min 32 chars) |
+| `BETTER_AUTH_URL` | Public app URL (e.g. `https://monapp.vercel.app`) |
 
 ## Architecture
 
@@ -40,24 +40,25 @@ This is a Next.js 16.1 application using the App Router pattern with:
 - **TypeScript**: Strict mode enabled
 - **Styling**: Tailwind CSS 4 with PostCSS
 - **React**: Version 19
-- **Database**: SQLite via `bun:sqlite` (native Bun) + Drizzle ORM
-- **Auth**: Better-auth (Credentials Provider, JWT sessions in HttpOnly cookie)
-- **Deployment**: Railway (Railpack builder, config in `railway.json`)
+- **Database**: PostgreSQL via Supabase + `postgres-js` + Drizzle ORM (`pg-core`)
+- **Auth**: Better-auth (Credentials Provider, JWT sessions in HttpOnly cookie, provider `"pg"`)
+- **Deployment**: Vercel (`vercel.json`, buildCommand `bun run build`)
 
 ### Key Dependencies
 
 - `better-auth` — Authentication (Credentials Provider, session JWT)
-- `drizzle-orm` / `drizzle-kit` — ORM and migrations for SQLite
-- `bun:sqlite` — Native Bun SQLite driver (no external dependency)
+- `drizzle-orm` / `drizzle-kit` — ORM and migrations for PostgreSQL (`pg-core`)
+- `postgres` — postgres-js driver (`prepare: false` for Supabase PgBouncer)
 - `recharts` — Chart library (LineChart for weight evolution)
 - `zod` — Schema validation
 - `react-hook-form` — Form handling with Zod integration
 
 ### Database
 
-- File: `./data/health-tracker.db` (or `DATABASE_PATH` env var)
+- Provider: Supabase PostgreSQL (project `remwjeqmsdxzalcwsqsj`)
+- Connection: `DATABASE_URL` pooled port 6543 (app) / `DATABASE_DIRECT_URL` direct port 5432 (migrations)
 - Tables managed by Better-auth: `user`, `session`, `account`, `verification`
-- App table: `weight_entries` (id, user_id FK→user.id, entry_date, weight_kg, notes, created_at)
+- App table: `weight_entries` (id serial PK, user_id FK→user.id, entry_date text, weight_kg double precision, notes, created_at timestamp)
 - Unique constraint: `(user_id, entry_date)` — one entry per user per day
 
 ### Project Structure
@@ -75,8 +76,7 @@ src/
 │   │   ├── entries/export/           # GET (CSV export)
 │   │   ├── entries/import/           # POST (CSV import)
 │   │   ├── entries/[id]/             # GET + DELETE single entry
-│   │   ├── admin/backup/             # GET (SQLite backup via VACUUM INTO)
-│   │   └── health/                   # GET (Railway healthcheck)
+│   │   └── health/                   # GET (healthcheck)
 │   ├── layout.tsx
 │   └── page.tsx                      # Landing page
 ├── components/
@@ -85,14 +85,13 @@ src/
 │   ├── entries/       # EntryForm, DeleteConfirmDialog
 │   └── ui/            # Button, Input, Modal
 ├── lib/
-│   ├── db/index.ts    # bun:sqlite + Drizzle instance
-│   ├── db/schema.ts   # Drizzle schema (Better-auth tables + weight_entries)
+│   ├── db/index.ts    # postgres-js + Drizzle instance (prepare: false)
+│   ├── db/schema.ts   # Drizzle schema pg-core (Better-auth tables + weight_entries)
 │   ├── auth.ts        # Better-auth config
 │   └── validations/   # Zod schemas (auth, entries)
 └── types/             # Shared TypeScript types
 middleware.ts          # Route protection (JWT validation)
-data/
-└── health-tracker.db  # SQLite file (generated)
+vercel.json            # Vercel deployment config
 ```
 
 - `@/*` path alias maps to project root
