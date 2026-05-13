@@ -1,8 +1,20 @@
 import { describe, expect, it, mock, beforeEach } from "bun:test";
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import * as schema from "../../lib/db/schema";
+import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
 import { NextRequest } from "next/server";
+
+// ─── Schéma SQLite local pour les tests ─────────────────────────────────────
+// Isolé du schéma de production (PostgreSQL). Reflète la structure de weight_entries.
+
+const weightEntriesTest = sqliteTable("weight_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull(),
+  entryDate: text("entry_date").notNull(),
+  weightKg: real("weight_kg").notNull(),
+  notes: text("notes"),
+  createdAt: text("created_at").notNull().default(""),
+});
 
 // ─── Base de données in-memory pour les tests ───────────────────────────────
 
@@ -19,7 +31,8 @@ testSqlite.run(`
     UNIQUE(user_id, entry_date)
   )
 `);
-const testDb = drizzle(testSqlite, { schema });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const testDb = drizzle(testSqlite, { schema: { weightEntries: weightEntriesTest } }) as any;
 
 // ─── Session mockable ────────────────────────────────────────────────────────
 
